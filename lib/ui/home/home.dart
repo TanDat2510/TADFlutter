@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/model/song.dart';
+import '../now_playing/playing.dart';
 
 class MusicApp extends StatelessWidget {
   const MusicApp({
@@ -21,9 +22,11 @@ class MusicApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: MusicHomePage(), // khi chay app, homepage se duoc hien thi
+      debugShowCheckedModeBanner: false,
     );
   }
 }
+
 class MusicHomePage extends StatefulWidget {
   const MusicHomePage({super.key}); // giao dien chinh man hinh co tab hien thi
 
@@ -118,7 +121,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
       return getListView();
   }
 
-
   Widget getProgressBar() {
     return const Center(
       // can giua noi dung ben trong ca chieu ngang va chieu doc
@@ -147,9 +149,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
   }
 
   Widget getRow(int index) {
-    return Center(
-      child:Text(songs[index].title) //tra ve ten cua bai hat ,
-    );
+    return _SongItemSection(parent: this, song: songs[index]);
   }
 
   void observeData() {
@@ -160,9 +160,78 @@ class _HomeTabPageState extends State<HomeTabPage> {
       });
     });
   }
+
+  void showBottomSheet(){
+    showModalBottomSheet(context: context, builder: (context){
+      return ClipRRect(
+        borderRadius: BorderRadiusDirectional.vertical(top: Radius.circular(16)),
+        child: Container(
+          height: 400,
+          width: 400,
+          color: Colors.grey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,// truc theo chieu doc
+            mainAxisSize: MainAxisSize.min,//kich thuong nho nhat
+            children: [
+              const Text('Modal Bottom'),
+              ElevatedButton(onPressed: ()=> Navigator.pop(context),
+              child: const Text('Close Bottom'),)
+            ],
+          ),
+        ),
+      );
+    });
+
+  }
+
+  void navigate(Song song){
+    Navigator.push(context,
+    CupertinoPageRoute(builder: (context){
+      return NowPlaying(
+        songs:songs,
+        playingSong:song,
+      );
+    })
+    );
+  }
 }
 
+class _SongItemSection extends StatelessWidget {
+  _SongItemSection({required this.parent, required this.song});
 
-class _songItemSection{
-  //final _HomeTabPageState parent;
+  final _HomeTabPageState parent;//tham chieu den parent widged, co the goi ham hoat cap nhat tu trang chinh
+  final Song song;// doi tuong
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(//canh chinh noi dung
+        left: 24,
+        right: 8,
+      ),
+      leading: ClipRRect(//tao khung cho hinh anh
+        borderRadius: BorderRadius.circular(9),
+        child: FadeInImage.assetNetwork(
+          placeholder: 'assets/images/logo.png',//hien thi hinh anh luc chua tai xong
+          image: song.image,//lay hinh anh that
+          width: 48,
+          height: 48,
+          imageErrorBuilder: (context, error, stackTrace) {// neu xay ra loi se su dung hinh anh local
+            return Image.asset('assets/images/logo.png', width: 48, height: 48);
+          },
+        ),
+      ),
+      title: Text(song.title),
+      subtitle: Text(song.artist), //ten tac gia
+      trailing: IconButton(
+        onPressed: () {
+          parent.showBottomSheet();
+        },
+        icon: const Icon(Icons.more_horiz),
+      ),
+      onTap: (){
+        parent.navigate(song);
+      },
+    );
+  }
 }
