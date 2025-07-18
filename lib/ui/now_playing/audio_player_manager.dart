@@ -22,6 +22,11 @@ class AudioPlayerManager {
     player.setUrl(songUrl); // Thiết lập URL bài hát để phát
   }
 
+  void updateSongUrl(String url){
+    songUrl = url;
+    init();
+  }
+
   void dispose(){
     player.dispose();
 

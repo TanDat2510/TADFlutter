@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -34,12 +36,18 @@ class NowPlayingPage extends StatefulWidget {
 
 class _NowPlayingState extends State<NowPlayingPage>
     with SingleTickerProviderStateMixin {
+  //bien khoi tao tre
   late AnimationController _imageAnimController;
   late AudioPlayerManager _audioPlayerManager;
+  late int _selectedItemIndex;
+  late Song _song;
+  late double _currentAnimationPosition;
 
   @override
   void initState() {
     super.initState();
+    _currentAnimationPosition=0.0;
+    _song=widget.playingSong;
     _imageAnimController = AnimationController(
       //dung de dieuu khien animation
       vsync: this,
@@ -48,14 +56,18 @@ class _NowPlayingState extends State<NowPlayingPage>
       ), //animation se chay trong 12s
     );
     _audioPlayerManager = AudioPlayerManager(
-      songUrl: widget.playingSong.source,
+      songUrl: _song.source,
     );
     _audioPlayerManager.init();
-  }
+    _selectedItemIndex = widget.songs.indexOf(widget.playingSong);//lay vi tri cua bai hang trong danh sah bai hat
 
+  }
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
     const delta = 64;
     final radius = (screenWidth - delta) / 2;
 
@@ -72,7 +84,7 @@ class _NowPlayingState extends State<NowPlayingPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(widget.playingSong.album),
+              Text(_song.album),
               const SizedBox(height: 16),
               const Text('_ ___ _'),
               const SizedBox(height: 48),
@@ -85,7 +97,7 @@ class _NowPlayingState extends State<NowPlayingPage>
                   borderRadius: BorderRadius.circular(radius),
                   child: FadeInImage.assetNetwork(
                     placeholder: 'assets/images/logo.png',
-                    image: widget.playingSong.image,
+                    image: _song.image,
                     width: screenWidth - delta,
                     height: screenWidth - delta,
                     imageErrorBuilder: (context, error, stackTrace) {
@@ -107,35 +119,55 @@ class _NowPlayingState extends State<NowPlayingPage>
                       IconButton(
                         onPressed: () {},
                         icon: const Icon(Icons.share_outlined),
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary,
                       ),
                       Column(
                         children: [
                           Text(
-                            widget.playingSong.title,
-                            style: Theme.of(context).textTheme.bodyMedium!
+                            _song.title,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .bodyMedium!
                                 .copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.color,
-                                ),
+                              color: Theme
+                                  .of(
+                                context,
+                              )
+                                  .textTheme
+                                  .bodyMedium!
+                                  .color,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            widget.playingSong.artist,
-                            style: Theme.of(context).textTheme.bodyMedium!
+                            _song.artist,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .bodyMedium!
                                 .copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.color,
-                                ),
+                              color: Theme
+                                  .of(
+                                context,
+                              )
+                                  .textTheme
+                                  .bodyMedium!
+                                  .color,
+                            ),
                           ),
                         ],
                       ),
                       IconButton(
                         onPressed: () {},
                         icon: Icon(Icons.favorite_outlined),
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary,
                       ),
                     ],
                   ),
@@ -168,8 +200,8 @@ class _NowPlayingState extends State<NowPlayingPage>
 
   @override
   void dispose() {
-    _audioPlayerManager
-      ..dispose(); // Khi thoat ra khoi man hinh bai hat se duoc tat di
+    _audioPlayerManager.dispose(); // Khi thoat ra khoi man hinh bai hat se duoc tat di
+    _imageAnimController.dispose();
     super.dispose();
   }
 
@@ -185,14 +217,14 @@ class _NowPlayingState extends State<NowPlayingPage>
             size: 24,
           ),
           MediaButtonControl(
-            function: null,
+            function: _setPrevSong,
             icon: Icons.skip_previous,
             color: Colors.deepPurple,
             size: 36,
           ),
           _playButton(),
           MediaButtonControl(
-            function: null,
+            function: _setNextSong,
             icon: Icons.skip_next,
             color: Colors.deepPurple,
             size: 36,
@@ -201,7 +233,7 @@ class _NowPlayingState extends State<NowPlayingPage>
             function: null,
             icon: Icons.repeat,
             color: Colors.deepPurple,
-            size: 36,
+            size: 24,
           ),
         ],
       ),
@@ -216,7 +248,16 @@ class _NowPlayingState extends State<NowPlayingPage>
         final progress = durationState?.progress ?? Duration.zero;
         final buffered = durationState?.buffered ?? Duration.zero;
         final total = durationState?.total ?? Duration.zero;
-        return ProgressBar(progress: progress, total: total);
+        return ProgressBar(
+            progress: progress,
+            total: total,
+            buffered: buffered,
+            //bo dem
+            onSeek: _audioPlayerManager.player.seek,
+            //gan callback function cho su keo keo xa audio
+            progressBarColor: Colors.blue,
+            thumbColor: Colors.deepPurple
+        );
       },
     );
   }
@@ -242,7 +283,9 @@ class _NowPlayingState extends State<NowPlayingPage>
         } else if (playing != true) {
           return MediaButtonControl(
             function: () {
-              _audioPlayerManager.player.play();//hanh dong
+              _audioPlayerManager.player.play(); //hanh dong start hoat resum
+              _imageAnimController.forward(from: _currentAnimationPosition);
+              _imageAnimController.repeat();
             },
             icon: Icons.play_arrow,
             color: Colors.black,
@@ -252,15 +295,27 @@ class _NowPlayingState extends State<NowPlayingPage>
           return MediaButtonControl(
             function: () {
               _audioPlayerManager.player.pause();
+              _imageAnimController.stop();
+              _currentAnimationPosition=_imageAnimController.value;
             },
             icon: Icons.pause,
             color: Colors.black,
             size: 48,
           );
         } else {
+          //truong hop cuoi if song complete -> stop and reset
+          if(processingState==ProcessingState.completed){
+            _imageAnimController.stop();
+            _currentAnimationPosition=0.0;
+          }
           return MediaButtonControl(
             function: () {
-              _audioPlayerManager.player.seek(Duration.zero);// chuc nang xa chua thuc hien duoc.
+              _currentAnimationPosition=0.0;
+              _imageAnimController.forward(from: _currentAnimationPosition);
+              _imageAnimController.repeat();
+              _audioPlayerManager.player.seek(
+                Duration.zero,
+              );
             },
             icon: Icons.replay,
             color: null,
@@ -270,6 +325,26 @@ class _NowPlayingState extends State<NowPlayingPage>
       },
     );
   }
+
+  void _setNextSong(){
+    ++_selectedItemIndex;
+    final nextSong = widget.songs[_selectedItemIndex];
+    _audioPlayerManager.updateSongUrl(nextSong.source);
+    setState(() {
+      _song = nextSong;
+    });
+  }
+
+  void _setPrevSong(){
+    --_selectedItemIndex;
+    final nextSong = widget.songs[_selectedItemIndex];
+    _audioPlayerManager.updateSongUrl(nextSong.source);
+    setState(() {
+      _song = nextSong;
+    });
+
+  }
+
 }
 
 // Widget co the thay doi trang thai
@@ -300,7 +375,10 @@ class _MediaButtonControlState extends State<MediaButtonControl> {
       onPressed: widget.function,
       icon: Icon(
         widget.icon,
-        color: widget.color ?? Theme.of(context).colorScheme.primary,
+        color: widget.color ?? Theme
+            .of(context)
+            .colorScheme
+            .primary,
         size: widget.size,
       ),
     );
