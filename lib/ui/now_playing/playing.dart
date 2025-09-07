@@ -42,6 +42,9 @@ class _NowPlayingState extends State<NowPlayingPage>
   late int _selectedItemIndex;
   late Song _song;
   late double _currentAnimationPosition;
+  bool _isShuffle = false;
+  bool _isRepeat = false;
+  late LoopMode _loopMode;
 
   @override
   void initState() {
@@ -60,6 +63,7 @@ class _NowPlayingState extends State<NowPlayingPage>
     );
     _audioPlayerManager.init();
     _selectedItemIndex = widget.songs.indexOf(widget.playingSong);//lay vi tri cua bai hang trong danh sah bai hat
+    _loopMode = LoopMode.off;
 
   }
   @override
@@ -211,9 +215,9 @@ class _NowPlayingState extends State<NowPlayingPage>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           MediaButtonControl(
-            function: null,
+            function: _setShuffle,
             icon: Icons.shuffle,
-            color: Colors.deepPurple,
+            color: _getShuffleColor(),
             size: 24,
           ),
           MediaButtonControl(
@@ -230,10 +234,10 @@ class _NowPlayingState extends State<NowPlayingPage>
             size: 36,
           ),
           MediaButtonControl(
-            function: null,
-            icon: Icons.repeat,
-            color: Colors.deepPurple,
-            size: 24,
+            function: _setRepatOption,
+            icon: _repeatingIcon(),
+            color: _getRepeatingIconColor(),
+            size: 24  ,
           ),
         ],
       ),
@@ -327,7 +331,17 @@ class _NowPlayingState extends State<NowPlayingPage>
   }
 
   void _setNextSong(){
-    ++_selectedItemIndex;
+    if(_isShuffle){
+      var random = Random();
+      _selectedItemIndex = random.nextInt(widget.songs.length);
+    }else if(_selectedItemIndex<widget.songs.length -1){
+      ++_selectedItemIndex;
+    }else if(_loopMode==LoopMode.all && _selectedItemIndex == widget.songs.length-1){
+      _selectedItemIndex=0;
+    }
+    if(_selectedItemIndex > widget.songs.length){
+      _selectedItemIndex=_selectedItemIndex % widget.songs.length;
+    }
     final nextSong = widget.songs[_selectedItemIndex];
     _audioPlayerManager.updateSongUrl(nextSong.source);
     setState(() {
@@ -336,13 +350,60 @@ class _NowPlayingState extends State<NowPlayingPage>
   }
 
   void _setPrevSong(){
-    --_selectedItemIndex;
+    if(_isShuffle){
+      var random = Random();
+      _selectedItemIndex = random.nextInt(widget.songs.length);
+    }else if(_selectedItemIndex > 0){
+      --_selectedItemIndex;
+    } else if(_loopMode==LoopMode.all && _selectedItemIndex ==0){
+      _selectedItemIndex = widget.songs.length -1;
+    }
+    if(_selectedItemIndex < 0){
+      _selectedItemIndex=((-1)*_selectedItemIndex) % widget.songs.length;
+    }
     final nextSong = widget.songs[_selectedItemIndex];
     _audioPlayerManager.updateSongUrl(nextSong.source);
     setState(() {
       _song = nextSong;
     });
 
+  }
+
+  void _setShuffle(){
+    setState(() {
+      _isShuffle=!_isShuffle;
+    });
+
+
+  }
+
+  void _setRepatOption(){
+    if (_loopMode==LoopMode.off){
+      _loopMode = LoopMode.one;
+    }else if(_loopMode==LoopMode.one){
+      _loopMode = LoopMode.all;
+    }else{
+      _loopMode = LoopMode.off;
+    }
+    setState(() {
+      _audioPlayerManager.player.setLoopMode(_loopMode);
+    });
+  }
+
+  Color? _getShuffleColor(){
+    return _isShuffle ? Colors.deepPurple : Colors.grey;
+  }
+
+  IconData _repeatingIcon(){
+    return switch(_loopMode){
+      LoopMode.one =>  Icons.repeat_one,
+    LoopMode.all => Icons.repeat_on,
+    _ => Icons.repeat,
+    };
+  }
+
+  Color? _getRepeatingIconColor(){
+    return _loopMode == LoopMode.off? Colors.grey: Colors.deepPurple;
   }
 
 }

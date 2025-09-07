@@ -1,4 +1,4 @@
-import 'package:appfirst2025/ui/discovery/discovey.dart';
+import 'package:appfirst2025/ui/discovery/discovery.dart';
 import 'package:appfirst2025/ui/home/viewmodel.dart';
 import 'package:appfirst2025/ui/settings/settings.dart';
 import 'package:appfirst2025/ui/user/user.dart';
@@ -37,7 +37,7 @@ class MusicHomePage extends StatefulWidget {
 class _MusicHomePageState extends State<MusicHomePage> {
   final List<Widget> _tabs = [
     const HomeTab(),
-    const DiscoveyTab(),
+    const DiscoveryTab(),
     const AccountTab(),
     const SettingsTab(),
   ];
@@ -216,7 +216,7 @@ class _SongItemSection extends StatelessWidget {
           image: song.image,//lay hinh anh that
           width: 48,
           height: 48,
-          imageErrorBuilder: (context, error, stackTrace) {// neu xay ra loi se su dung hinh anh local
+          imageErrorBuilder: (context, emrror, stackTrace) {// neu xay ra loi se su dung hinh anh local
             return Image.asset('assets/images/logo.png', width: 48, height: 48);
           },
         ),
