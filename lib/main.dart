@@ -1,6 +1,9 @@
-import 'package:appfirst2025/data/repository/repository.dart';
 import 'package:appfirst2025/ui/home/home.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MusicApp());
-
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MusicApp());
+}

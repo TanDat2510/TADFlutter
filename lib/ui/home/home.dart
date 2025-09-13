@@ -42,6 +42,7 @@ class _MusicHomePageState extends State<MusicHomePage> {
     const SettingsTab(),
   ];
 
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
