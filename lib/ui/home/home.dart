@@ -4,24 +4,44 @@ import 'package:appfirst2025/ui/settings/settings.dart';
 import 'package:appfirst2025/ui/user/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../data/model/song.dart';
+import '../../utils/theme_provider.dart';
 import '../now_playing/playing.dart';
 
+
 class MusicApp extends StatelessWidget {
-  const MusicApp({
-    super.key,
-  }); // truyen key cho widget cha (Flutter su dung de kiem soat
+  const MusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'ZingMP5',
+
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light, // đồng bộ light
+        ),
         useMaterial3: true,
       ),
-      home: MusicHomePage(), // khi chay app, homepage se duoc hien thi
+
+
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark, // đồng bộ dark
+        ),
+        useMaterial3: true,
+      ),
+
+
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+
+      home: const MusicHomePage(),
       debugShowCheckedModeBanner: false,
     );
   }

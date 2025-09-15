@@ -83,7 +83,7 @@ class _AccountTabState extends State<AccountTab> {
                         _buildMenuItem(Icons.library_music, "My Playlists"),
                         _buildMenuItem(Icons.favorite, "Favorites"),
                         _buildMenuItem(Icons.headphones, "Subscriptions"),
-                        _buildMenuItem(Icons.settings, "Settings"),
+                        _buildMenuItem(Icons.person, "Profile"),
                       ],
                     ),
                   ),
